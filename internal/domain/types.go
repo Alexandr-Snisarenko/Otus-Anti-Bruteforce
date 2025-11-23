@@ -16,3 +16,12 @@ const (
 	PasswordLimit LimitType = "password"
 	IPLimit       LimitType = "ip"
 )
+
+// PolicyDecision представляет решение политики доступа для подсетей.
+type PolicyDecision int
+
+const (
+	DecisionContinue PolicyDecision = iota
+	DecisionDeny
+	DecisionAllow
+)

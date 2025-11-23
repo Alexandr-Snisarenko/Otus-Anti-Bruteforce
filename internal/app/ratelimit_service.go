@@ -4,60 +4,38 @@ import (
 	"context"
 	"crypto/sha256"
 	"fmt"
+	"net"
 
-	"github.com/Alexandr-Snisarenko/Otus-Anti-bruteforce/internal/config"
 	"github.com/Alexandr-Snisarenko/Otus-Anti-bruteforce/internal/domain"
 	"github.com/Alexandr-Snisarenko/Otus-Anti-bruteforce/internal/domain/ratelimit"
 	"github.com/Alexandr-Snisarenko/Otus-Anti-bruteforce/internal/domain/subnetlist"
-	"github.com/Alexandr-Snisarenko/Otus-Anti-bruteforce/internal/ports"
 )
 
 type RateLimiterService struct {
-	whitelistSubnet *subnetlist.SubnetList
-	blacklistSubnet *subnetlist.SubnetList
-	limitChecker    *ratelimit.LimitChecker
+	listPolicy   *subnetlist.SubnetPolicy
+	limitChecker *ratelimit.LimitChecker
 }
 
-func NewRateLimiterService(ctx context.Context, config *config.Limits, limiterRepo ports.LimiterRepo, subnetRepo ports.SubnetRepo) (*RateLimiterService, error) {
-	limits := ratelimit.Limits{
-		domain.LoginLimit: {
-			Limit:  config.LoginAttempts,
-			Window: config.Window,
-		},
-		domain.PasswordLimit: {
-			Limit:  config.PasswordAttempts,
-			Window: config.Window,
-		},
-		domain.IPLimit: {
-			Limit:  config.IPAttempts,
-			Window: config.Window,
-		},
-	}
-
-	whitelistSubnet := subnetlist.NewSubnetList(domain.Whitelist)
-	if err := whitelistSubnet.Load(ctx, subnetRepo); err != nil {
-		return nil, err
-	}
-
-	blacklistSubnet := subnetlist.NewSubnetList(domain.Blacklist)
-	if err := blacklistSubnet.Load(ctx, subnetRepo); err != nil {
-		return nil, err
-	}
-
+func NewRateLimiterService(
+	policy *subnetlist.SubnetPolicy,
+	checker *ratelimit.LimitChecker,
+) *RateLimiterService {
 	return &RateLimiterService{
-		whitelistSubnet: whitelistSubnet,
-		blacklistSubnet: blacklistSubnet,
-		limitChecker:    ratelimit.NewLimitChecker(limiterRepo, limits),
-	}, nil
+		listPolicy:   policy,
+		limitChecker: checker,
+	}
 }
 
-func (s *RateLimiterService) Check(ctx context.Context, login, password, ip string) (bool, error) {
+func (s *RateLimiterService) Check(ctx context.Context, login, password string, ip net.IP) (bool, error) {
 	// Проверка whitelist/blacklist
-	if ok, err := s.whitelistSubnet.Contains(ip); err != nil || ok {
-		return ok, err
-	}
-	if ok, err := s.blacklistSubnet.Contains(ip); err != nil || ok {
-		return ok, err
+	decision := s.listPolicy.Check(ip)
+	switch decision {
+	case domain.DecisionDeny:
+		return false, nil
+	case domain.DecisionAllow:
+		return true, nil
+	case domain.DecisionContinue:
+		// Продолжаем проверку лимитов
 	}
 
 	// Хешируем пароль перед проверкой лимитов
@@ -65,13 +43,13 @@ func (s *RateLimiterService) Check(ctx context.Context, login, password, ip stri
 
 	// Три проверки: по логину, паролю, IP
 	if okLogin, err := s.limitChecker.Allow(ctx, domain.LoginLimit, login); err != nil || !okLogin {
-		return false, nil
+		return false, err
 	}
 	if okPassword, err := s.limitChecker.Allow(ctx, domain.PasswordLimit, passwordHash); err != nil || !okPassword {
-		return false, nil
+		return false, err
 	}
-	if okIP, err := s.limitChecker.Allow(ctx, domain.IPLimit, ip); err != nil || !okIP {
-		return false, nil
+	if okIP, err := s.limitChecker.Allow(ctx, domain.IPLimit, ip.String()); err != nil || !okIP {
+		return false, err
 	}
 
 	return true, nil

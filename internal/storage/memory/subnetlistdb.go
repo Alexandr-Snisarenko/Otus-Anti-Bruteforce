@@ -26,7 +26,7 @@ func NewSubnetListDB() *SubnetListDB {
 	}
 }
 
-func (db *SubnetListDB) GetSubnetLists(ctx context.Context, listType domain.ListType) ([]string, error) {
+func (db *SubnetListDB) GetSubnetLists(_ context.Context, listType domain.ListType) ([]string, error) {
 	db.mu.RLock()
 	defer db.mu.RUnlock()
 
@@ -42,7 +42,7 @@ func (db *SubnetListDB) GetSubnetLists(ctx context.Context, listType domain.List
 	return cidrs, nil
 }
 
-func (db *SubnetListDB) SaveSubnetList(ctx context.Context, listType domain.ListType, cidrs []string) error {
+func (db *SubnetListDB) SaveSubnetList(_ context.Context, listType domain.ListType, cidrs []string) error {
 	db.mu.Lock()
 	defer db.mu.Unlock()
 
@@ -54,7 +54,7 @@ func (db *SubnetListDB) SaveSubnetList(ctx context.Context, listType domain.List
 	return nil
 }
 
-func (db *SubnetListDB) ClearSubnetList(ctx context.Context, listType domain.ListType) error {
+func (db *SubnetListDB) ClearSubnetList(_ context.Context, listType domain.ListType) error {
 	db.mu.Lock()
 	defer db.mu.Unlock()
 
@@ -62,7 +62,7 @@ func (db *SubnetListDB) ClearSubnetList(ctx context.Context, listType domain.Lis
 	return nil
 }
 
-func (db *SubnetListDB) AddCIDRToSubnetList(ctx context.Context, listType domain.ListType, cidr string) error {
+func (db *SubnetListDB) AddCIDRToSubnetList(_ context.Context, listType domain.ListType, cidr string) error {
 	db.mu.Lock()
 	defer db.mu.Unlock()
 
@@ -75,7 +75,7 @@ func (db *SubnetListDB) AddCIDRToSubnetList(ctx context.Context, listType domain
 	return nil
 }
 
-func (db *SubnetListDB) RemoveCIDRFromSubnetList(ctx context.Context, listType domain.ListType, cidr string) error {
+func (db *SubnetListDB) RemoveCIDRFromSubnetList(_ context.Context, listType domain.ListType, cidr string) error {
 	db.mu.Lock()
 	defer db.mu.Unlock()
 

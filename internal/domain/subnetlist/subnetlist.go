@@ -54,18 +54,13 @@ func (nl *SubnetList) Add(cidr string) error {
 	return nil
 }
 
-func (nl *SubnetList) Contains(ipStr string) (bool, error) {
-	ip := net.ParseIP(ipStr)
-	if ip == nil {
-		return false, ErrInvalidIP
-	}
-
+func (nl *SubnetList) Contains(ip net.IP) bool {
 	for _, net := range nl.nets {
 		if net.Contains(ip) {
-			return true, nil
+			return true
 		}
 	}
-	return false, nil
+	return false
 }
 
 func (nl *SubnetList) Remove(cidr string) {

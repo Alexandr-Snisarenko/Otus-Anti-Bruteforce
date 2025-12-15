@@ -4,7 +4,11 @@ import (
 	"context"
 	"sync"
 	"time"
+
+	"github.com/Alexandr-Snisarenko/Otus-Anti-bruteforce/internal/ports"
 )
+
+var _ ports.LimiterRepo = (*BucketsDB)(nil)
 
 // BucketsDB — простая in-memory реализация скользящего окна.
 type BucketsDB struct {

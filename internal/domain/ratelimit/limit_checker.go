@@ -7,6 +7,8 @@ import (
 	"github.com/Alexandr-Snisarenko/Otus-Anti-bruteforce/internal/ports"
 )
 
+var _ ports.LimitChecker = (*LimitChecker)(nil)
+
 type LimitChecker struct {
 	limiters map[domain.LimitType]*Limiter
 }

@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/Alexandr-Snisarenko/Otus-Anti-bruteforce/internal/domain"
+	"github.com/Alexandr-Snisarenko/Otus-Anti-bruteforce/internal/ports"
 )
 
 // SubnetListDB — простая in-memory реализация для работы со списками подсетей.
@@ -13,6 +14,8 @@ import (
 // Формат записи: map[listType]map[cidr]struct{}
 // Например:
 // data = {"whitelist": {"192.168.10.10/24": struct{}{}, "192.168.20.20/24": struct{}{}},}
+
+var _ ports.SubnetRepo = (*SubnetListDB)(nil)
 
 type SubnetListDB struct {
 	mu   sync.RWMutex

@@ -1,0 +1,45 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: abf
+      POSTGRES_PASSWORD: abf-pass
+      POSTGRES_DB: abf
+#    ports:
+#      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U abf"]
+      interval: 2s
+      timeout: 2s
+      retries: 10
+
+  migrator:
+    build:
+      context: .
+      dockerfile: build/Dockerfile
+      target: migrator
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_DSN: "postgres://abf:abf-pass@postgres:5432/abf?sslmode=disable"
+    command: ["up"]   # например, migrator up
+    restart: "no"     # мигратор завершает работу после выполнения
+
+  redis:
+    image: redis:7.4-alpine
+    container_name: abf-redis
+#    ports:
+#      - "6379:6379"
+
+  app:
+    build:
+      context: .
+      dockerfile: build/app.Dockerfile
+    depends_on:
+      migrator:
+        condition: service_completed_successfully
+      redis:
+        condition: service_started

@@ -15,8 +15,6 @@ POSTGRES_DB ?= backend
 POSTGRES_PORT ?= 5435
 POSTGRES_CONTAINER := postgres-calendar
 
-
-
 run-postgres:
 	docker run -d --name $(POSTGRES_CONTAINER) \
 	-e POSTGRES_USER=$(POSTGRES_USER) \
@@ -30,6 +28,21 @@ stop-postgres:
 	docker stop $(POSTGRES_CONTAINER) || true
 	docker rm $(POSTGRES_CONTAINER) || true	
 
+# -------- Proto --------
+
+PROTO_DIR = api/proto/anti_bruteforce/v1
+
+generate:
+	protoc \
+		--proto_path=api/proto/anti_bruteforce/v1 \
+		--go_out=$(PROTO_DIR) \
+		--go_opt=paths=source_relative \
+		--go-grpc_out=$(PROTO_DIR) \
+		--go-grpc_opt=paths=source_relative \
+		$(PROTO_DIR)/anti_bruteforce.proto
+
+
+# -------- Build targets --------
 
 build:
 	@mkdir -p $(BIN_DIR)
@@ -58,12 +71,21 @@ test:
 test-race:
 	go test -race -count=100 -v ./...
 
+# -------- Lint --------
+GOLANGCI_LINT_VERSION := v1.64.2
+GOLANGCI_LINT_BIN := $(shell go env GOPATH)/bin/golangci-lint
+
 install-lint-deps:
-	(which golangci-lint > /dev/null) || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin v1.63.4
+	@mkdir -p $(shell go env GOPATH)/bin
+	@($(GOLANGCI_LINT_BIN) version 2>/dev/null | grep -q "$(GOLANGCI_LINT_VERSION)") || \
+		curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | \
+		sh -s -- -b $(shell go env GOPATH)/bin $(GOLANGCI_LINT_VERSION)
 
 lint: install-lint-deps
-	golangci-lint run ./...
+	@$(GOLANGCI_LINT_BIN) run ./...
 
+
+# -------- Documentation --------
 docs:
 	plantuml -tpng docs/architecture/*.puml -o ../generated/docs/architecture/	
 

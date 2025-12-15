@@ -5,8 +5,7 @@ import (
 	"time"
 )
 
-// LimiterRepo — абстракция ограничения.
-// Важно: реализация должна быть атомарной в разрезе одного key.
+// LimiterRepo — абстракция для проверки лимитов в БД учёта событий по ключам.
 type LimiterRepo interface {
 	// Allow применяет скользящее окно к ОДНОМУ ключу.
 	Allow(ctx context.Context, key string, limit int, window time.Duration) (bool, error)

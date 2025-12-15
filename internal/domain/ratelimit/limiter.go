@@ -29,7 +29,7 @@ type Limiter struct {
 	rule      Rule
 }
 
-// NewLimiter возвращает новую in-memory реализацию.
+// NewLimiter создает новый экземпляр Limiter для заданного типа лимита и правила.
 func NewLimiter(st ports.LimiterRepo, limitType string, r Rule) *Limiter {
 	return &Limiter{
 		storage:   st,

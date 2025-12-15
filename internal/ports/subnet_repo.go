@@ -6,7 +6,7 @@ import (
 	"github.com/Alexandr-Snisarenko/Otus-Anti-bruteforce/internal/domain"
 )
 
-// SubnetRepo — абстракция для работы со списками подсетей.
+// SubnetRepo — абстракция для работы со списками подсетей в БД.
 type SubnetRepo interface {
 	GetSubnetLists(ctx context.Context, listType domain.ListType) ([]string, error)
 	SaveSubnetList(ctx context.Context, listType domain.ListType, cidrs []string) error

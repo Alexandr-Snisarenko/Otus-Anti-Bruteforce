@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package abf.v1;
+
+option go_package = "github.com/Alexandr-Snisarenko/Otus-Anti-bruteforce/api/proto/anti_bruteforce/v1;pbv1";
+
+// Реализация сервиса защиты от брутфорс атак. 
+// В соответствии с техзаданием реализованы методы проверки попытки входа, 
+// сброса счетчиков и управления белым и черным списками CIDR.
+service AntiBruteforce {
+  rpc CheckAttempt(CheckAttemptRequest) returns (CheckAttemptResponse);
+  rpc ResetBucket(ResetBucketRequest) returns (ResetBucketResponse);
+  rpc AddToWhitelist(ManageCIDRRequest) returns (ManageCIDRResponse);
+  rpc RemoveFromWhitelist(ManageCIDRRequest) returns (ManageCIDRResponse);
+  rpc AddToBlacklist(ManageCIDRRequest) returns (ManageCIDRResponse);
+  rpc RemoveFromBlacklist(ManageCIDRRequest) returns (ManageCIDRResponse);
+}
+
+message CheckAttemptRequest {
+  string login = 1;
+  string password = 2;
+  string ip = 3;
+}
+message CheckAttemptResponse { bool ok = 1; }
+
+message ResetBucketRequest { string login = 1; string password = 2; string ip = 3; }
+message ResetBucketResponse {}
+
+message ManageCIDRRequest { string cidr = 1; }
+message ManageCIDRResponse {}

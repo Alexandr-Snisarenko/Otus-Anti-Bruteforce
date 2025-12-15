@@ -1,0 +1,56 @@
+app:
+  name: "anti-bruteforce"
+
+server:
+  address: "127.0.0.1"
+  port: 50051
+  tls:
+    enabled: false
+    cert_file: "cert.pem"
+    key_file: "key.pem"
+
+limits:
+  login_attempts: 5
+  password_attempts: 10
+  ip_attempts: 20 
+  window: 1m # time.Duration format
+
+logger:
+  level: "info"
+  file: "" # если не указан - логгирование в stdout
+
+database:
+  # В проекте используем два режима работы сервиса local и external
+  # Если выбран режим local - все данные хранятся в оперативной памяти и сбрасываются при перезапуске сервиса
+  # Если выбран режим external - все данные хранятся в PostgreSQL базе данных и в Redis кэше
+  workmode: local    # local/external
+  postgresql:
+    dsn: "" # если dsn = "" используются параметры подключения ниже
+    user: "abf_admin"
+    password: "admin1"
+    host: "localhost"
+    port: 5432
+    name: "anti_bruteforce"
+    pool:
+      # Макс. число открытых соединений от этого процесса (по умолчанию - 20)
+      max_open_conns: 20
+      # Макс. число открытых неиспользуемых соединений (по умолчанию - 10)
+      max_idle_conns: 10
+      # Макс. время жизни одного подключения (time.Duration)(по умолчанию - 1h)
+      conn_max_lifetime: "1h" 
+      # Макс. время ожидания подключения в пуле (time.Duration))(по умолчанию - 10m)
+      conn_max_idle_time: "10m"
+  redis: # Используем один экземпляр Redis, но два клиента. один клиент для полисера, второй - для подписчика
+    address: "localhost:6379"
+    password: ""
+    db: 0
+    policer:
+      read_timeout: 3s
+      write_timeout: 3s
+      dial_timeout: 5s
+      pool_size: 100 
+    subscriber:
+      read_timeout: 0s # длительное ожидание для подписчика
+      pool_size: 2
+      subnets_channel: "abf.subnets.updated" # канал для нотификаций об обновлении списков подсетей 
+

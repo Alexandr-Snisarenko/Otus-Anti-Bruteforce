@@ -22,7 +22,7 @@ func newRootCmd() *cobra.Command {
 	abfctl --addr 127.0.0.1:50051 check --login user --pass secret --ip 127.0.0.1
 	abfctl --addr 127.0.0.1:50051 reset --login user --ip 127.0.0.1`,
 		// Создаём клиента и кладём его в context перед выполнением любой команды
-		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
 			c, err := abfclient.New(addr)
 			if err != nil {
 				return err
@@ -35,7 +35,7 @@ func newRootCmd() *cobra.Command {
 		},
 
 		// Закрываем клиента после выполнения любой команды
-		PersistentPostRunE: func(cmd *cobra.Command, args []string) error {
+		PersistentPostRunE: func(cmd *cobra.Command, _ []string) error {
 			// достаём клиента и закрываем
 			if c, ok := cmd.Context().Value(clientKey).(*abfclient.Client); ok && c != nil {
 				return c.Close()
@@ -51,8 +51,29 @@ func newRootCmd() *cobra.Command {
 		"gRPC address (or ABF_ADDR)",
 	)
 
-	root.AddCommand(newWhitelistCmd())
-	root.AddCommand(newBlacklistCmd())
+	// Регистрируем спецификации для whitelist и blacklist
+	// для устранения дублирующегося кода
+	whitelistSpec := listSpec{
+		name: "whitelist",
+		addFn: func(cmd *cobra.Command, cidr string) error {
+			return getClient(cmd).AddToWhitelist(cmd.Context(), cidr)
+		},
+		removeFn: func(cmd *cobra.Command, cidr string) error {
+			return getClient(cmd).RemoveFromWhitelist(cmd.Context(), cidr)
+		},
+	}
+	blacklistSpec := listSpec{
+		name: "blacklist",
+		addFn: func(cmd *cobra.Command, cidr string) error {
+			return getClient(cmd).AddToBlacklist(cmd.Context(), cidr)
+		},
+		removeFn: func(cmd *cobra.Command, cidr string) error {
+			return getClient(cmd).RemoveFromBlacklist(cmd.Context(), cidr)
+		},
+	}
+
+	root.AddCommand((newListCmd(whitelistSpec)))
+	root.AddCommand((newListCmd(blacklistSpec)))
 	root.AddCommand(newCheckCmd())
 	root.AddCommand(newResetCmd())
 	return root

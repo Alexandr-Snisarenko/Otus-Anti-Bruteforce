@@ -6,19 +6,19 @@ func newResetCmd() *cobra.Command {
 	var login string
 	var ip string
 
-	с := &cobra.Command{
+	c := &cobra.Command{
 		Use:   "reset",
 		Short: "Reset bucket for login/ip",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			return getClient(cmd).ResetBucket(cmd.Context(), login, ip)
 		},
 	}
 
-	с.Flags().StringVar(&login, "login", "", "Login to reset")
-	с.Flags().StringVar(&ip, "ip", "", "IP to reset")
+	c.Flags().StringVar(&login, "login", "", "Login to reset")
+	c.Flags().StringVar(&ip, "ip", "", "IP to reset")
 
-	_ = с.MarkFlagRequired("login")
-	_ = с.MarkFlagRequired("ip")
+	_ = c.MarkFlagRequired("login")
+	_ = c.MarkFlagRequired("ip")
 
-	return с
+	return c
 }

@@ -43,7 +43,9 @@ func (s *Server) CheckAttempt(
 	return &pbv1.CheckAttemptResponse{Ok: allowed}, nil
 }
 
-func (s *Server) ResetBucket(ctx context.Context, req *pbv1.ResetBucketRequest) (resp *pbv1.ResetBucketResponse, err error) {
+func (s *Server) ResetBucket(ctx context.Context,
+	req *pbv1.ResetBucketRequest,
+) (resp *pbv1.ResetBucketResponse, err error) {
 	if s.rateLimiter == nil {
 		return nil, ErrRateLimiterNotConfigured
 	}

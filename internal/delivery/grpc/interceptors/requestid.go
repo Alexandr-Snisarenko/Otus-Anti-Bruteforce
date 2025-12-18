@@ -12,7 +12,7 @@ import (
 const requestIDHeader = "x-request-id"
 
 func UnaryRequestIDInterceptor() grpc.UnaryServerInterceptor {
-	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
+	return func(ctx context.Context, req any, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 		var rid string
 
 		// 1) пробуем взять из metadata
@@ -29,9 +29,6 @@ func UnaryRequestIDInterceptor() grpc.UnaryServerInterceptor {
 
 		// 3) кладём в ctx
 		ctx = ctxmeta.WithRequestID(ctx, rid)
-
-		// 4) опционально: если нужно, можем отдать клиенту в response headers
-		//_ = grpc.SetHeader(ctx, metadata.Pairs(requestIDHeader, rid))
 
 		return handler(ctx, req)
 	}

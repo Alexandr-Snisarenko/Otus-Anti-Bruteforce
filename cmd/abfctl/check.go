@@ -9,7 +9,7 @@ func newCheckCmd() *cobra.Command {
 	c := &cobra.Command{
 		Use:   "check",
 		Short: "Check if request is allowed",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			ok, err := getClient(cmd).Check(cmd.Context(), login, pass, ip)
 			if err != nil {
 				return err

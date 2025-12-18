@@ -17,7 +17,6 @@ func UnaryLoggingInterceptor(log *logger.Logger) grpc.UnaryServerInterceptor {
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (any, error) {
-
 		start := time.Now()
 
 		// вызов реального handler'а

@@ -23,7 +23,10 @@ type SubnetListService struct {
 	subnetUpdatePublisher ports.SubnetUpdatesPublisher
 }
 
-func NewSubnetListService(subnetRepo ports.SubnetRepo, subnetUpdatePublisher ports.SubnetUpdatesPublisher) *SubnetListService {
+func NewSubnetListService(
+	subnetRepo ports.SubnetRepo,
+	subnetUpdatePublisher ports.SubnetUpdatesPublisher,
+) *SubnetListService {
 	return &SubnetListService{
 		subnetRepo:            subnetRepo,
 		subnetUpdatePublisher: subnetUpdatePublisher,

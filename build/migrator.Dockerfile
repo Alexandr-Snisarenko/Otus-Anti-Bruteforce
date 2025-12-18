@@ -22,8 +22,9 @@ FROM alpine:3.19
 RUN apk add --no-cache ca-certificates
 
 COPY --from=build /out/migrator /usr/local/bin/migrator
-COPY ./configs/config.yaml /etc/anti-bruteforce/config.yaml
+COPY ./configs/config.yml /etc/anti-bruteforce/config.yml
+COPY ./db/migrations /migrations
 
-ENV CONFIG_FILE=/etc/anti-bruteforce/config.yaml
+ENV CONFIG_FILE=/etc/anti-bruteforce/config.yml
 
 ENTRYPOINT ["/usr/local/bin/migrator"]

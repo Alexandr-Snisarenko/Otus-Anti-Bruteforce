@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Alexandr-Snisarenko/Otus-Anti-bruteforce/internal/ports"
+	"github.com/Alexandr-Snisarenko/Otus-Anti-Bruteforce/internal/ports"
 )
 
 var _ ports.LimiterRepo = (*BucketsDB)(nil)

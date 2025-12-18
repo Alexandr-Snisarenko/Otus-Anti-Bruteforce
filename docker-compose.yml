@@ -18,14 +18,17 @@ services:
   migrator:
     build:
       context: .
-      dockerfile: build/Dockerfile
+      dockerfile: build/migrator.Dockerfile
       target: migrator
     depends_on:
       postgres:
         condition: service_healthy
-    environment:
-      DB_DSN: "postgres://abf:abf-pass@postgres:5432/abf?sslmode=disable"
-    command: ["up"]   # например, migrator up
+    command: 
+      [
+        "-config=/config/config.yml",
+        "-dir=/migrations",
+        "-command=up"
+      ]   
     restart: "no"     # мигратор завершает работу после выполнения
 
   redis:

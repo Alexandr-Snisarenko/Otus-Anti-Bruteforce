@@ -6,8 +6,8 @@ import (
 	"net"
 	"testing"
 
-	"github.com/Alexandr-Snisarenko/Otus-Anti-bruteforce/internal/domain"
-	"github.com/Alexandr-Snisarenko/Otus-Anti-bruteforce/internal/storage/memory"
+	"github.com/Alexandr-Snisarenko/Otus-Anti-Bruteforce/internal/domain"
+	"github.com/Alexandr-Snisarenko/Otus-Anti-Bruteforce/internal/storage/memory"
 )
 
 func TestIsIPInList_Table(t *testing.T) {

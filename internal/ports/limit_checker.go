@@ -3,7 +3,7 @@ package ports
 import (
 	"context"
 
-	"github.com/Alexandr-Snisarenko/Otus-Anti-bruteforce/internal/domain"
+	"github.com/Alexandr-Snisarenko/Otus-Anti-Bruteforce/internal/domain"
 )
 
 // LimitChecker — интерфейс для проверки и сброса лимитов.

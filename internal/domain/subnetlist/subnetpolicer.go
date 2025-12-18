@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/Alexandr-Snisarenko/Otus-Anti-bruteforce/internal/domain"
-	"github.com/Alexandr-Snisarenko/Otus-Anti-bruteforce/internal/ports"
+	"github.com/Alexandr-Snisarenko/Otus-Anti-Bruteforce/internal/domain"
+	"github.com/Alexandr-Snisarenko/Otus-Anti-Bruteforce/internal/ports"
 )
 
 var _ ports.SubnetPolicer = (*SubnetPolicer)(nil)

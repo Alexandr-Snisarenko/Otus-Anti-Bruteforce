@@ -4,8 +4,8 @@ import (
 	"context"
 	"net"
 
-	pbv1 "github.com/Alexandr-Snisarenko/Otus-Anti-bruteforce/api/proto/anti_bruteforce/v1"
-	"github.com/Alexandr-Snisarenko/Otus-Anti-bruteforce/internal/app"
+	pbv1 "github.com/Alexandr-Snisarenko/Otus-Anti-Bruteforce/api/proto/anti_bruteforce/v1"
+	"github.com/Alexandr-Snisarenko/Otus-Anti-Bruteforce/internal/app"
 )
 
 var _ pbv1.AntiBruteforceServer = (*Server)(nil)
@@ -23,7 +23,7 @@ func NewServer(rateLimiter app.RateLimiterUseCase, subnetList app.SubnetListUseC
 	}
 }
 
-func (s *Server) Check(
+func (s *Server) CheckAttempt(
 	ctx context.Context,
 	req *pbv1.CheckAttemptRequest,
 ) (resp *pbv1.CheckAttemptResponse, err error) {
@@ -43,7 +43,7 @@ func (s *Server) Check(
 	return &pbv1.CheckAttemptResponse{Ok: allowed}, nil
 }
 
-func (s *Server) Reset(ctx context.Context, req *pbv1.ResetBucketRequest) (resp *pbv1.ResetBucketResponse, err error) {
+func (s *Server) ResetBucket(ctx context.Context, req *pbv1.ResetBucketRequest) (resp *pbv1.ResetBucketResponse, err error) {
 	if s.rateLimiter == nil {
 		return nil, ErrRateLimiterNotConfigured
 	}

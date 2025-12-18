@@ -3,8 +3,8 @@ package ratelimit
 import (
 	"context"
 
-	"github.com/Alexandr-Snisarenko/Otus-Anti-bruteforce/internal/domain"
-	"github.com/Alexandr-Snisarenko/Otus-Anti-bruteforce/internal/ports"
+	"github.com/Alexandr-Snisarenko/Otus-Anti-Bruteforce/internal/domain"
+	"github.com/Alexandr-Snisarenko/Otus-Anti-Bruteforce/internal/ports"
 )
 
 var _ ports.LimitChecker = (*LimitChecker)(nil)

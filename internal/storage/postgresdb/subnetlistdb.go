@@ -1,21 +1,21 @@
-package postgresql
+package postgresdb
 
 import (
 	"context"
 	"errors"
 	"fmt"
 
-	"github.com/Alexandr-Snisarenko/Otus-Anti-bruteforce/internal/config"
-	"github.com/Alexandr-Snisarenko/Otus-Anti-bruteforce/internal/domain"
+	"github.com/Alexandr-Snisarenko/Otus-Anti-Bruteforce/internal/config"
+	"github.com/Alexandr-Snisarenko/Otus-Anti-Bruteforce/internal/domain"
 	_ "github.com/jackc/pgx/v4/stdlib" // register pgx driver
 	"github.com/jmoiron/sqlx"
 )
 
-type PgStorage struct {
+type SubnetListDB struct {
 	db *sqlx.DB
 }
 
-func (s *PgStorage) GetSubnetLists(ctx context.Context, listType domain.ListType) ([]string, error) {
+func (s *SubnetListDB) GetSubnetLists(ctx context.Context, listType domain.ListType) ([]string, error) {
 	const query = `
 	SELECT cidr
 	FROM subnets
@@ -28,7 +28,7 @@ func (s *PgStorage) GetSubnetLists(ctx context.Context, listType domain.ListType
 	return cidrs, nil
 }
 
-func (s *PgStorage) SaveSubnetList(ctx context.Context, listType domain.ListType, cidrs []string) error {
+func (s *SubnetListDB) SaveSubnetList(ctx context.Context, listType domain.ListType, cidrs []string) error {
 	if len(cidrs) == 0 {
 		return nil
 	}
@@ -49,7 +49,7 @@ func (s *PgStorage) SaveSubnetList(ctx context.Context, listType domain.ListType
 	return err
 }
 
-func (s *PgStorage) ClearSubnetList(ctx context.Context, listType domain.ListType) error {
+func (s *SubnetListDB) ClearSubnetList(ctx context.Context, listType domain.ListType) error {
 	const query = `
     DELETE FROM subnets
     WHERE list_type = $1`
@@ -59,7 +59,7 @@ func (s *PgStorage) ClearSubnetList(ctx context.Context, listType domain.ListTyp
 	return err
 }
 
-func (s *PgStorage) AddCIDRToSubnetList(ctx context.Context, listType domain.ListType, cidr string) error {
+func (s *SubnetListDB) AddCIDRToSubnetList(ctx context.Context, listType domain.ListType, cidr string) error {
 	if cidr == "" {
 		return ErrEmptyCIDR
 	}
@@ -73,7 +73,7 @@ func (s *PgStorage) AddCIDRToSubnetList(ctx context.Context, listType domain.Lis
 	return err
 }
 
-func (s *PgStorage) RemoveCIDRFromSubnetList(ctx context.Context, listType domain.ListType, cidr string) error {
+func (s *SubnetListDB) RemoveCIDRFromSubnetList(ctx context.Context, listType domain.ListType, cidr string) error {
 	if cidr == "" {
 		return ErrEmptyCIDR
 	}
@@ -87,11 +87,11 @@ func (s *PgStorage) RemoveCIDRFromSubnetList(ctx context.Context, listType domai
 	return err
 }
 
-func (s *PgStorage) Close() error {
+func (s *SubnetListDB) Close() error {
 	return s.db.Close()
 }
 
-func New(cfg config.Database) (*PgStorage, error) {
+func NewSubnetListDB(cfg config.Database) (*SubnetListDB, error) {
 	db, err := OpenDB(cfg)
 	if err != nil {
 		return nil, err
@@ -103,7 +103,7 @@ func New(cfg config.Database) (*PgStorage, error) {
 	db.SetConnMaxLifetime(cfg.Postgresql.Pool.ConnMaxLifetime)
 	db.SetConnMaxIdleTime(cfg.Postgresql.Pool.ConnMaxIdleTime)
 
-	return &PgStorage{db: db}, nil
+	return &SubnetListDB{db: db}, nil
 }
 
 func OpenDB(cfg config.Database) (*sqlx.DB, error) {

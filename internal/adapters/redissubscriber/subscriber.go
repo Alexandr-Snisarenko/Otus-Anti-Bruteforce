@@ -3,10 +3,8 @@ package redissubscriber
 import (
 	"context"
 	"fmt"
-	"time"
 
-	"github.com/Alexandr-Snisarenko/Otus-Anti-bruteforce/internal/config"
-	"github.com/Alexandr-Snisarenko/Otus-Anti-bruteforce/internal/ports"
+	"github.com/Alexandr-Snisarenko/Otus-Anti-Bruteforce/internal/ports"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -17,26 +15,11 @@ type SubnetUpdatesSubscriber struct {
 }
 
 func NewSubnetUpdatesSubscriber(
-	cfg *config.Database,
+	rdb *redis.Client,
 	subnetHolder ports.SubnetHolder,
-) (*SubnetUpdatesSubscriber, error) {
-	rdb := redis.NewClient(&redis.Options{
-		Addr:     cfg.Redis.Address,
-		Password: cfg.Redis.Password,
-		DB:       cfg.Redis.DB,
-	})
-
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-	defer cancel()
-
-	// Проверяем подключение
-	if err := rdb.Ping(ctx).Err(); err != nil {
-		return nil, err
-	}
-
-	channel := cfg.Redis.Subscriber.SubnetsChannel
-
-	return &SubnetUpdatesSubscriber{rdb: rdb, channel: channel, subnetHolder: subnetHolder}, nil
+	channel string,
+) *SubnetUpdatesSubscriber {
+	return &SubnetUpdatesSubscriber{rdb: rdb, channel: channel, subnetHolder: subnetHolder}
 }
 
 func (s *SubnetUpdatesSubscriber) Start(ctx context.Context) error {

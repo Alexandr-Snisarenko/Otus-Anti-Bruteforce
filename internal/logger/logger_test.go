@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	internalcfg "github.com/Alexandr-Snisarenko/Otus-Anti-bruteforce/internal/config"
-	"github.com/Alexandr-Snisarenko/Otus-Anti-bruteforce/internal/ctxmeta"
+	internalcfg "github.com/Alexandr-Snisarenko/Otus-Anti-Bruteforce/internal/config"
+	"github.com/Alexandr-Snisarenko/Otus-Anti-Bruteforce/internal/ctxmeta"
 )
 
 func Test_parseLevel(t *testing.T) {

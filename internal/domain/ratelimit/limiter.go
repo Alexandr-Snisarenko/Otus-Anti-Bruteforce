@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/Alexandr-Snisarenko/Otus-Anti-bruteforce/internal/ports"
+	"github.com/Alexandr-Snisarenko/Otus-Anti-Bruteforce/internal/ports"
 )
 
 // Limiter - реализация лимитера по алгоритму скользящего окна.

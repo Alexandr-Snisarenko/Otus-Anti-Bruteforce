@@ -1,12 +1,12 @@
 # -------- Project meta --------
 APP_NAME      := anti-bruteforce
-CLI_NAME      := abf-cli
+CLI_NAME      := abfctl
 
-BIN_DIR       := "./bin"
+BIN_DIR       := ./bin
 DOCKER_IMG="anti-bruteforce:develop"
 
 GIT_HASH := $(shell git log --format="%h" -n 1)
-LDFLAGS := -X main.release="develop" -X main.buildDate=$(shell date -u +%Y-%m-%dT%H:%M:%S) -X main.gitHash=$(GIT_HASH)
+LDFLAGS := -X version.release="develop" -X version.buildDate=$(shell date -u +%Y-%m-%dT%H:%M:%S) -X version.gitHash=$(GIT_HASH)
 
 #Postrges
 POSTGRES_USER ?= postgres
@@ -43,15 +43,14 @@ generate:
 
 
 # -------- Build targets --------
-
 build:
 	@mkdir -p $(BIN_DIR)
 	go build -ldflags "$(LDFLAGS)" -v -o $(BIN_DIR)/$(APP_NAME) ./cmd/anti-bruteforce
-#	go build -ldflags "$(LDFLAGS)" -v -o $(BIN_DIR)/$(CLI_NAME) ./cmd/abf-cli
+#	go build -ldflags "$(LDFLAGS)" -v -o $(BIN_DIR)/$(CLI_NAME) ./cmd/abfctl
 
 
 run: build
-	$(BIN) -config ./configs/config.yaml
+	$(BIN_DIR)/$(APP_NAME) -config ./configs/config.yml
 
 build-img:
 	docker build \

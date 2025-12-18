@@ -4,8 +4,8 @@ import (
 	"context"
 	"sync"
 
-	"github.com/Alexandr-Snisarenko/Otus-Anti-bruteforce/internal/domain"
-	"github.com/Alexandr-Snisarenko/Otus-Anti-bruteforce/internal/ports"
+	"github.com/Alexandr-Snisarenko/Otus-Anti-Bruteforce/internal/domain"
+	"github.com/Alexandr-Snisarenko/Otus-Anti-Bruteforce/internal/ports"
 )
 
 // SubnetListDB — простая in-memory реализация для работы со списками подсетей.

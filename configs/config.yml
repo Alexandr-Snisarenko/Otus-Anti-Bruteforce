@@ -26,11 +26,11 @@ database:
   workmode: local    # local/external
   postgresql:
     dsn: "" # если dsn = "" используются параметры подключения ниже
-    user: "abf_admin"
-    password: "admin1"
+    user: "abf"
+    password: "abf-pass"
     host: "localhost"
     port: 5432
-    name: "anti_bruteforce"
+    name: "abf"
     pool:
       # Макс. число открытых соединений от этого процесса (по умолчанию - 20)
       max_open_conns: 20
@@ -40,6 +40,8 @@ database:
       conn_max_lifetime: "1h" 
       # Макс. время ожидания подключения в пуле (time.Duration))(по умолчанию - 10m)
       conn_max_idle_time: "10m"
+      
+      
   redis: # Используем один экземпляр Redis, но два клиента. один клиент для полисера, второй - для подписчика
     address: "localhost:6379"
     password: ""

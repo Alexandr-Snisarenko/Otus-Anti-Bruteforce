@@ -8,8 +8,8 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Alexandr-Snisarenko/Otus-Anti-bruteforce/internal/config"
-	"github.com/Alexandr-Snisarenko/Otus-Anti-bruteforce/internal/storage/postgresql"
+	"github.com/Alexandr-Snisarenko/Otus-Anti-Bruteforce/internal/config"
+	"github.com/Alexandr-Snisarenko/Otus-Anti-Bruteforce/internal/storage/postgresdb"
 	"github.com/jmoiron/sqlx"
 	goose "github.com/pressly/goose/v3"
 )
@@ -20,7 +20,7 @@ func init() {
 			"Migrate - утилита для управления миграциями БД сервиса Anti-Bruteforce (на основе goose)\n\n"+
 				"вызов: migrate -config=<config file name> -dir=<migration dir> -command=<migration command> arg\n\n"+
 				"Примеры:\n"+
-				"  migrate -config=config.yaml -dir=./migrations -command up 0002\n"+
+				"  migrate -config=config.yaml -dir=./migrations -command up-to 0002\n"+
 				"  migrate -command status\n\n"+
 				"Доступные флаги:\n")
 		flag.PrintDefaults()
@@ -67,7 +67,7 @@ func runMigration(configFile, migrationsDir, command, arg string) error {
 	}
 
 	// Подключаемся к БД
-	if dbx, err = postgresql.OpenDB(cfg.Database); err != nil {
+	if dbx, err = postgresdb.OpenDB(cfg.Database); err != nil {
 		return fmt.Errorf("DB open error: %w", err)
 	}
 

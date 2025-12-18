@@ -7,11 +7,12 @@
 package pbv1
 
 import (
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
+
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const (
@@ -326,7 +327,7 @@ const file_anti_bruteforce_proto_rawDesc = "" +
 	"\x0eAddToWhitelist\x12\x19.abf.v1.ManageCIDRRequest\x1a\x1a.abf.v1.ManageCIDRResponse\x12L\n" +
 	"\x13RemoveFromWhitelist\x12\x19.abf.v1.ManageCIDRRequest\x1a\x1a.abf.v1.ManageCIDRResponse\x12G\n" +
 	"\x0eAddToBlacklist\x12\x19.abf.v1.ManageCIDRRequest\x1a\x1a.abf.v1.ManageCIDRResponse\x12L\n" +
-	"\x13RemoveFromBlacklist\x12\x19.abf.v1.ManageCIDRRequest\x1a\x1a.abf.v1.ManageCIDRResponseBWZUgithub.com/Alexandr-Snisarenko/Otus-Anti-bruteforce/api/proto/anti_bruteforce/v1;pbv1b\x06proto3"
+	"\x13RemoveFromBlacklist\x12\x19.abf.v1.ManageCIDRRequest\x1a\x1a.abf.v1.ManageCIDRResponseBWZUgithub.com/Alexandr-Snisarenko/Otus-Anti-Bruteforce/api/proto/anti_bruteforce/v1;pbv1b\x06proto3"
 
 var (
 	file_anti_bruteforce_proto_rawDescOnce sync.Once

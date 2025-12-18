@@ -1,4 +1,4 @@
-package redisclient
+package redisdb
 
 import (
 	"context"
@@ -7,34 +7,15 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/Alexandr-Snisarenko/Otus-Anti-bruteforce/internal/config"
 	"github.com/redis/go-redis/v9"
 )
 
-type RdbClient struct {
+type BucketsRepo struct {
 	client *redis.Client
 }
 
-func New(cfg config.Database) (*RdbClient, error) {
-	rdb := redis.NewClient(&redis.Options{
-		Addr:         cfg.Redis.Address,
-		Password:     cfg.Redis.Password,
-		DB:           cfg.Redis.DB,
-		DialTimeout:  cfg.Redis.Policer.DialTimeout,
-		ReadTimeout:  cfg.Redis.Policer.ReadTimeout,
-		WriteTimeout: cfg.Redis.Policer.WriteTimeout,
-		PoolSize:     cfg.Redis.Policer.PoolSize,
-	})
-
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-	defer cancel()
-
-	// Проверяем подключение
-	if err := rdb.Ping(ctx).Err(); err != nil {
-		return nil, err
-	}
-
-	return &RdbClient{client: rdb}, nil
+func NewBucketsRepo(rdc *redis.Client) *BucketsRepo {
+	return &BucketsRepo{client: rdc}
 }
 
 // Allow проверяет, можно ли выполнить действие, ограниченное лимитом.
@@ -58,7 +39,7 @@ func New(cfg config.Database) (*RdbClient, error) {
 // 3. Считаем количество оставшихся запросов в множестве.
 // 4. Если количество меньше или равно лимиту — разрешаем действие.
 
-func (c *RdbClient) Allow(ctx context.Context, key string, limit int, window time.Duration) (bool, error) {
+func (c *BucketsRepo) Allow(ctx context.Context, key string, limit int, window time.Duration) (bool, error) {
 	now := time.Now().UnixMilli()
 	pipe := c.client.TxPipeline()
 
@@ -90,6 +71,6 @@ func (c *RdbClient) Allow(ctx context.Context, key string, limit int, window tim
 	return n <= int64(limit), nil
 }
 
-func (c *RdbClient) Reset(ctx context.Context, key string) error {
+func (c *BucketsRepo) Reset(ctx context.Context, key string) error {
 	return c.client.Del(ctx, key).Err()
 }

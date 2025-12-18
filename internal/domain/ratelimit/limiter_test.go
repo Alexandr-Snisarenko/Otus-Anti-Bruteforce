@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Alexandr-Snisarenko/Otus-Anti-bruteforce/internal/storage/memory"
+	"github.com/Alexandr-Snisarenko/Otus-Anti-Bruteforce/internal/storage/memory"
 )
 
 func TestLimiter_BasicFlow(t *testing.T) {

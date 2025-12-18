@@ -6,11 +6,11 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/Alexandr-Snisarenko/Otus-Anti-bruteforce/internal/config"
-	"github.com/Alexandr-Snisarenko/Otus-Anti-bruteforce/internal/domain"
-	"github.com/Alexandr-Snisarenko/Otus-Anti-bruteforce/internal/domain/ratelimit"
-	"github.com/Alexandr-Snisarenko/Otus-Anti-bruteforce/internal/domain/subnetlist"
-	"github.com/Alexandr-Snisarenko/Otus-Anti-bruteforce/internal/ports"
+	"github.com/Alexandr-Snisarenko/Otus-Anti-Bruteforce/internal/config"
+	"github.com/Alexandr-Snisarenko/Otus-Anti-Bruteforce/internal/domain"
+	"github.com/Alexandr-Snisarenko/Otus-Anti-Bruteforce/internal/domain/ratelimit"
+	"github.com/Alexandr-Snisarenko/Otus-Anti-Bruteforce/internal/domain/subnetlist"
+	"github.com/Alexandr-Snisarenko/Otus-Anti-Bruteforce/internal/ports"
 )
 
 type RateLimiterUseCase interface {

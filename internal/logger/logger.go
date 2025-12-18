@@ -7,8 +7,8 @@ import (
 	"os"
 	"strings"
 
-	internalcfg "github.com/Alexandr-Snisarenko/Otus-Anti-bruteforce/internal/config"
-	"github.com/Alexandr-Snisarenko/Otus-Anti-bruteforce/internal/ctxmeta"
+	internalcfg "github.com/Alexandr-Snisarenko/Otus-Anti-Bruteforce/internal/config"
+	"github.com/Alexandr-Snisarenko/Otus-Anti-Bruteforce/internal/ctxmeta"
 )
 
 // Logger - обёртка над slog.Logger с контекстными методами логирования.

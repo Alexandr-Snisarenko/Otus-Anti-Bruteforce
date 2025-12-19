@@ -40,8 +40,8 @@ func (s *SubnetListDB) SaveSubnetList(ctx context.Context, listType domain.ListT
 	rows := make([]subnetRow, 0, len(cidrs))
 	for _, cidr := range cidrs {
 		rows = append(rows, subnetRow{
-			cidr:     cidr,
-			listType: string(listType),
+			CIDR:     cidr,
+			ListType: string(listType),
 		})
 	}
 
@@ -69,7 +69,7 @@ func (s *SubnetListDB) AddCIDRToSubnetList(ctx context.Context, listType domain.
     ON CONFLICT (cidr, list_type) DO NOTHING`
 
 	// На количество строк не проверяем, если есть дубликат - считаем, что операция успешна
-	_, err := s.db.NamedExecContext(ctx, query, subnetRow{cidr: cidr, listType: string(listType)})
+	_, err := s.db.NamedExecContext(ctx, query, subnetRow{CIDR: cidr, ListType: string(listType)})
 	return err
 }
 
@@ -83,7 +83,7 @@ func (s *SubnetListDB) RemoveCIDRFromSubnetList(ctx context.Context, listType do
 	AND list_type = :list_type`
 
 	// На количество строк не проверяем, факт непосредственного удаления не важен
-	_, err := s.db.NamedExecContext(ctx, query, subnetRow{cidr: cidr, listType: string(listType)})
+	_, err := s.db.NamedExecContext(ctx, query, subnetRow{CIDR: cidr, ListType: string(listType)})
 	return err
 }
 

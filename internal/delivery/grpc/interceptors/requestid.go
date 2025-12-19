@@ -15,20 +15,23 @@ func UnaryRequestIDInterceptor() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req any, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 		var rid string
 
-		// 1) пробуем взять из metadata
+		// Пробуем взять request id из metadata
 		if md, ok := metadata.FromIncomingContext(ctx); ok {
 			if vals := md.Get(requestIDHeader); len(vals) > 0 && vals[0] != "" {
 				rid = vals[0]
 			}
 		}
 
-		// 2) если нет — генерим
+		// Если нет — генерим
 		if rid == "" {
 			rid = uuid.NewString()
 		}
 
-		// 3) кладём в ctx
+		// Кладём в ctx
 		ctx = ctxmeta.WithRequestID(ctx, rid)
+
+		// Отдаём x-request-id клиенту в response headers
+		_ = grpc.SetHeader(ctx, metadata.Pairs(requestIDHeader, rid))
 
 		return handler(ctx, req)
 	}

@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   postgres:
     image: postgres:16-alpine
@@ -7,8 +5,8 @@ services:
       POSTGRES_USER: abf
       POSTGRES_PASSWORD: abf-pass
       POSTGRES_DB: abf
-#    ports:
-#      - "5432:5432"
+    ports:
+      - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U abf"]
       interval: 2s
@@ -25,7 +23,7 @@ services:
         condition: service_healthy
     command: 
       [
-        "-config=/config/config.yml",
+        "-config=/etc/anti-bruteforce/config.yml",
         "-dir=/migrations",
         "-command=up"
       ]   
@@ -34,8 +32,8 @@ services:
   redis:
     image: redis:7.4-alpine
     container_name: abf-redis
-#    ports:
-#      - "6379:6379"
+    ports:
+      - "6379:6379"
 
   app:
     build:
@@ -46,3 +44,5 @@ services:
         condition: service_completed_successfully
       redis:
         condition: service_started
+    ports:
+      - "50051:50051"        

@@ -2,7 +2,7 @@ app:
   name: "anti-bruteforce"
 
 server:
-  address: "127.0.0.1"
+  address: "0.0.0.0"
   port: 50051
   tls:
     enabled: false
@@ -23,12 +23,12 @@ database:
   # В проекте используем два режима работы сервиса local и external
   # Если выбран режим local - все данные хранятся в оперативной памяти и сбрасываются при перезапуске сервиса
   # Если выбран режим external - все данные хранятся в PostgreSQL базе данных и в Redis кэше
-  workmode: local    # local/external
+  workmode: external    # local/external
   postgresql:
     dsn: "" # если dsn = "" используются параметры подключения ниже
     user: "abf"
     password: "abf-pass"
-    host: "localhost"
+    host: "postgres"
     port: 5432
     name: "abf"
     pool:
@@ -41,9 +41,9 @@ database:
       # Макс. время ожидания подключения в пуле (time.Duration))(по умолчанию - 10m)
       conn_max_idle_time: "10m"
       
-      
+
   redis: # Используем один экземпляр Redis, но два клиента. один клиент для полисера, второй - для подписчика
-    address: "localhost:6379"
+    address: "redis:6379"
     password: ""
     db: 0
     policer:

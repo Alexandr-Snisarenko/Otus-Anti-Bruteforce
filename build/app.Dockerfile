@@ -1,5 +1,5 @@
 # Собираем в гошке
-FROM golang:1.23 as build
+FROM golang:1.24 as build
 
 ENV BIN_FILE /opt/anti-bruteforce/anti-bruteforce
 ENV CODE_DIR /go/src/
@@ -30,7 +30,7 @@ LABEL MAINTAINERS="student@otus.ru"
 ENV BIN_FILE "/opt/anti-bruteforce/anti-bruteforce"
 COPY --from=build ${BIN_FILE} ${BIN_FILE}
 
-ENV CONFIG_FILE /etc/anti-bruteforce/config.yaml
-COPY ./configs/config.yaml ${CONFIG_FILE}
+ENV CONFIG_FILE /etc/anti-bruteforce/config.yml
+COPY ./configs/config.yml ${CONFIG_FILE}
 
 CMD ${BIN_FILE} -config ${CONFIG_FILE}

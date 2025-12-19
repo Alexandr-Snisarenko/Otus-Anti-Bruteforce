@@ -1,6 +1,6 @@
 # build/migrator/Dockerfile
 
-FROM golang:1.23-alpine AS build
+FROM golang:1.24-alpine AS build
 
 WORKDIR /src
 
@@ -17,7 +17,7 @@ RUN CGO_ENABLED=0 go build -o /out/migrator ./cmd/migrator
 
 # ---------------- runtime ----------------
 
-FROM alpine:3.19
+FROM alpine:3.19 AS migrator
 
 RUN apk add --no-cache ca-certificates
 

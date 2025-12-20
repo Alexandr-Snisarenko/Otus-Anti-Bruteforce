@@ -47,6 +47,8 @@ build-img:
 run-img: build-img
 	docker run --rm --name $(CONTAINER_NAME) -p 50051:50051 $(DOCKER_IMG) 
 
+run-compose:
+	docker-compose -f docker-compose.yml -p abf up --build
 
 version: build
 	$(BIN_DIR)/$(APP_NAME) version

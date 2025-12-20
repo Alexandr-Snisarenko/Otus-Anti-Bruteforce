@@ -42,30 +42,42 @@
 ### 3.1 Структура каталогов
 
 ```
+api/proto/anti_bruteforce/v1/               # proto файлы gRPC сервиса  
+
+build/                  # Docker файлы       
+
 cmd/
  ├─ anti-bruteforce/    # основной сервис (gRPC)
- └─ abf/                # CLI-клиент для администрирования
+ ├─ abfctl/             # CLI-клиент для администрирования
+ └─ migrator/           # мигратор (на goos)
+
+configs/                # файл конфигурации
+
+db/migrations/          # миграции
+
 internal/
+ ├─ abfclient/          # gRPC клиент 
+ ├─ adapters/           # адаптеры для Sub/Pub операций
  ├─ app/                # бизнес-координация, use-cases
- ├─ core/
+ ├─ config/             # парсинг YAML/env
+ ├─ ctxmeta/            # работа с контекстом
+ ├─ delivery/
+ │  ├─grpc/             # реализация сервера
+ │  └─interceptors/     # интерсепторы логирования и requestID
+ ├─ domain/
  │   ├─ ratelimit/      # логика rate-limit
  │   └─ subnetlist/     # работа с white/black lists
- ├─ storage/
- │   ├─ redisrl/        # реализация rate-limit в Redis (Sliding Window)
- │   ├─ postgres/       # хранение subnet lists
- │   └─ memory/         # in-memory реализация (тесты)
- ├─ server/grpc/         # реализация сервера
- ├─ ctxmeta/             # работа с контекстом
- ├─ version/             # автоформирование версии
- ├─ config/             # парсинг YAML/env
- └─ logger/             # slog + контекстные поля
+ ├─ factory/            # фабрика (Redis client)
+ ├─ integration/        # интеграционные тесты
+ ├─ logger/             # slog + контекстные поля
+ ├─ ports/              # набор портовых интерфейсов
+ ├─ storage/            
+ │   ├─ memory/         # in-memory реализация (тесты)
+ │   ├─ postgresdb/     # хранение subnet lists
+ │   └─ redisdb/        # реализация rate-limit в Redis (Sliding Window)
+ └─ version/            # автоформирование версии
+ 
 
-api
-└─ proto/               # файл .proto для API
-
-deployment/
- ├─ docker-compose.yml
- └─ migrations/
 docs/
  ├─ architecture/      # архитектурные схемы (puml)
  ├─ requirements.md
@@ -88,34 +100,56 @@ docs/
 Для ведения backets и проверки лимитов используется алгоритм Sliding Window, через Redis ZSET.
 Атомарность операций обеспечивается путем работы в redis.Client.TxPipeline()
 
-**Параметры:**  
-`window_ms = 60_000`  
-`score = timestamp_ms`
+Используем паттерн "скользящее окно" на основе  Redis Sorted Set (ZSET)
+с Member = текущее время в миллисекундах + случайное число.
+В такой комбинации повторение Member маловероятно,
+Считаем такую уникальность приемлимой, чтобы избежать коллизий при одновременных запросах.
+TTL ключа устанавливаем в два раза больше длинны окна, чтобы данные не накапливались бесконечно.
 
-**Процедура:**
+Таким образом, по каждому ключу (например конкретному логину) в Redis создаётся отдельный ZSET,
+в котором хранятся события обращения за проверкой — временные метки запросов.
+Для проверки лимита - считаем количество элементов в ZSET, соответствующих текущему окну времени.
+Если количество элементов меньше или равно лимиту - разрешаем действие.
+Алгоритм:
+1. Добавляем текущий запрос с текущей временной меткой.
+2. Удаляем из множества все запросы старше текущего времени минус окно.
+3. Считаем количество оставшихся запросов в множестве.
+4. Если количество меньше или равно лимиту — разрешаем действие.
+
+**Параметры: ZSET**  
+- Key - строка, содержимое которой, это конкретный проверяемый элемент - логин, пароль(хеш) или IP адрес. например: "login:test_login"
+- Score - текущее время в миллисекундах
+- Member - текущее время в миллисекундах + случайное число
+
+**Алгоритм:**
 ```text
-ZREMRANGEBYSCORE key -inf now-window
-ZADD key now member
-count = ZCARD key
-if count >= limit: deny
-PEXPIRE key window
+// --- Создаём Redis пайплайн --- 
+pipe := redis.Client.TxPipeline()
+// 1. Добавляем текущий запрос
+pipe.ZAdd( key, Score, Member)
+// 2. Удаляем устаревшие
+pipe.ZRemRangeByScore(key, "0", now-window)
+// 3. Считаем, сколько элементов осталось в наборе
+pipe.ZCard(key)
+// 4. Обновляем TTL
+pipe.Expire(key, window*2)
+// ---- Запускаем пайплайн -----
+pipe.Exec(ctx)
 ```
 
 **Ключи:**
 ```
-rl:login:{login}
-rl:pass:{hash(password)}
-rl:ip:{ip}
+login:{login}
+pass:{hash(password)}
+ip:{ip}
 ```
 
-**ResetBucket:** `DEL` соответствующих ключей.
+**ResetBucket:** 
+`DEL` соответствующего ключей.
 
-### 4.3 In-memory реализация
-- Используется в тестах.
-- Структура: `map[string]*bucket` + `[]int64`.
-- TTL-очистка при бездействии.
 
-### 4.4 Работа со списками
+
+### 4.3 Работа со списками
 **Таблица PostgreSQL:**
 ```sql
 CREATE TABLE subnets (
@@ -128,7 +162,7 @@ CREATE TABLE subnets (
 
 ```
 **Предполагаются типы:** whitelist, blacklist.  
-**Типы:** IPv4, CIDR-нотация `192.1.1.0/25`.
+**Подсети:** IPv4, CIDR-нотация `192.1.1.0/25`.
 
 ---
 
@@ -167,14 +201,14 @@ message ManageCIDRResponse {}
 ---
 
 ## 6. CLI
-Бинарник `cmd/abf`. Работает через gRPC API.
+Бинарник `cmd/abfctl`. Работает через gRPC API.
 
 Примеры:
 ```bash
-abf check --login alice --password qwerty --ip 10.1.2.3
-abf reset --login alice --ip 10.1.2.3
-abf whitelist add 192.0.2.0/24
-abf blacklist rm 198.51.100.0/25
+abfctl --addr 127.0.0.1:50051 check --login user --pass secret --ip 192.168.1.1
+abfctl --addr 127.0.0.1:50051 blacklist add --cidr 192.168.2.0/24
+abfctl --addr 127.0.0.1:50051 whitelist remove --cidr 192.168.1.0/24
+abfctl --addr 127.0.0.1:50051 reset --login user  --ip 192.168.1.1
 ```
 
 ---

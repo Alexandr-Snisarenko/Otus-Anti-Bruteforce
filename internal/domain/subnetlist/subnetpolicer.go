@@ -26,12 +26,12 @@ func NewSubnetPolicer(repo ports.SubnetRepo) (*SubnetPolicer, error) {
 }
 
 func (sp *SubnetPolicer) Check(ip net.IP) domain.PolicyDecision {
-	if sp.Blacklist != nil && sp.Blacklist.Contains(ip) {
-		return domain.DecisionDeny
-	}
-
 	if sp.Whitelist != nil && sp.Whitelist.Contains(ip) {
 		return domain.DecisionAllow
+	}
+
+	if sp.Blacklist != nil && sp.Blacklist.Contains(ip) {
+		return domain.DecisionDeny
 	}
 
 	return domain.DecisionContinue

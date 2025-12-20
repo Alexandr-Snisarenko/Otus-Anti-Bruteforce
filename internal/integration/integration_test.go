@@ -60,9 +60,9 @@ func Test_ABF_AllAPI_Methods(t *testing.T) {
 
 	require.NoError(t, cl.AddToWhitelist(ctx, "192.168.2.0/24"))
 
-	// ok, err := cl.Check(ctx, "user-wl", "secret-wl", "192.168.2.10")
-	// require.NoError(t, err)
-	// require.True(t, ok)
+	ok, err := cl.Check(ctx, "user-wl", "secret-wl", "192.168.2.10")
+	require.NoError(t, err)
+	require.True(t, ok)
 
 	require.NoError(t, cl.RemoveFromWhitelist(ctx, "192.168.2.0/24"))
 

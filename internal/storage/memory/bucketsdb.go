@@ -11,6 +11,8 @@ import (
 var _ ports.LimiterRepo = (*BucketsDB)(nil)
 
 // BucketsDB — простая in-memory реализация скользящего окна.
+// Ключ - идентификатор бакета (например, IP или логин).
+// Значение - таймлайн попыток.
 type BucketsDB struct {
 	mu   sync.RWMutex
 	data map[string]*timeline

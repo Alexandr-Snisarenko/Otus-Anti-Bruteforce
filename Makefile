@@ -4,7 +4,8 @@ APP_NAME      := anti-bruteforce
 CLI_NAME      := abfctl
 
 BIN_DIR       := ./bin
-DOCKER_IMG="anti-bruteforce:develop"
+DOCKER_IMG= anti-bruteforce:develop
+CONTAINER_NAME := abf-app-develop
 
 GIT_HASH := $(shell git log --format="%h" -n 1)
 BUILD_DATE := $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
@@ -44,7 +45,8 @@ build-img:
 		-f build/app.Dockerfile .
 
 run-img: build-img
-	docker run --rm -p 50051:50051 $(DOCKER_IMG)
+	docker run --rm --name $(CONTAINER_NAME) -p 50051:50051 $(DOCKER_IMG) 
+
 
 version: build
 	$(BIN_DIR)/$(APP_NAME) version

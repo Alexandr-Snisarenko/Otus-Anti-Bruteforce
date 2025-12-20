@@ -22,13 +22,6 @@ const (
 	grpcAddr   = "127.0.0.1:50051"
 )
 
-// These values mirror defaults from configs/config.yml used by the service
-const (
-	loginAttempts    = 5
-	passwordAttempts = 10
-	ipAttempts       = 20
-)
-
 func TestMain(m *testing.M) {
 	ctx, cancel := context.WithTimeout(context.Background(), 4*time.Minute)
 	defer cancel()
@@ -76,65 +69,6 @@ func Test_ABF_AllAPI_Methods(t *testing.T) {
 	require.NoError(t, cl.RemoveFromBlacklist(ctx, "10.0.0.0/8"))
 
 	require.NoError(t, cl.ResetBucket(ctx, "user-reset", "11.22.33.44"))
-}
-
-func Test_ABF_RateLimits_Login_Password_IP_And_Reset(t *testing.T) {
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
-	defer cancel()
-
-	cl, err := abfclient.New(grpcAddr)
-	require.NoError(t, err)
-	t.Cleanup(func() { _ = cl.Close() })
-
-	// 1) Login limit
-	login := "integration-login-limit"
-	for i := 0; i < loginAttempts; i++ {
-		ok, err := cl.Check(ctx, login, fmt.Sprintf("pw-%d", i), fmt.Sprintf("10.11.%d.%d", i/256, i%256))
-		require.NoError(t, err)
-		require.True(t, ok)
-	}
-
-	ok, err := cl.Check(ctx, login, "pw-final", "9.9.9.9")
-	require.NoError(t, err)
-	require.False(t, ok, "expected login limit to deny further attempts")
-
-	// Reset by login (ResetBucket expects login and ip)
-	require.NoError(t, cl.ResetBucket(ctx, login, "9.9.9.9"))
-	ok, err = cl.Check(ctx, login, "pw-after-reset", "9.9.9.9")
-	require.NoError(t, err)
-	require.True(t, ok, "expected login allowed after reset")
-
-	// 2) Password limit (same password, different logins/ips)
-	password := "integration-password-limit"
-	for i := 0; i < passwordAttempts; i++ {
-		l := fmt.Sprintf("user-pw-%d", i)
-		ip := fmt.Sprintf("20.21.%d.%d", i/256, i%256)
-		ok, err := cl.Check(ctx, l, password, ip)
-		require.NoError(t, err)
-		require.True(t, ok)
-	}
-
-	ok, err = cl.Check(ctx, "some-other-user", password, "20.0.0.1")
-	require.NoError(t, err)
-	require.False(t, ok, "expected password limit to deny further attempts")
-
-	// 3) IP limit
-	ip := "123.123.123.1"
-	for i := 0; i < ipAttempts; i++ {
-		ok, err := cl.Check(ctx, fmt.Sprintf("user-ip-%d", i), fmt.Sprintf("pw-ip-%d", i), ip)
-		require.NoError(t, err)
-		require.True(t, ok)
-	}
-
-	ok, err = cl.Check(ctx, "another-user", "another-pw", ip)
-	require.NoError(t, err)
-	require.False(t, ok, "expected IP limit to deny further attempts")
-
-	// Reset by IP
-	require.NoError(t, cl.ResetBucket(ctx, "another-user", ip))
-	ok, err = cl.Check(ctx, "another-user", "another-pw", ip)
-	require.NoError(t, err)
-	require.True(t, ok, "expected IP allowed after reset")
 }
 
 func must(ctx context.Context, name string, args ...string) {

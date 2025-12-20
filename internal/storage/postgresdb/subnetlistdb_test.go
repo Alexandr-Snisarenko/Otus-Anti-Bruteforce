@@ -6,10 +6,9 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/Alexandr-Snisarenko/Otus-Anti-Bruteforce/internal/domain"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/jmoiron/sqlx"
-
-	"github.com/Alexandr-Snisarenko/Otus-Anti-Bruteforce/internal/domain"
 )
 
 func setup(t *testing.T) (*SubnetListDB, sqlmock.Sqlmock, func()) {
@@ -31,7 +30,8 @@ func TestGetSubnetLists_Success(t *testing.T) {
 	defer cleanup()
 
 	rows := sqlmock.NewRows([]string{"cidr"}).AddRow("1.2.3.0/24").AddRow("10.0.0.0/8")
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT cidr\n\tFROM subnets\n\tWHERE list_type = $1")).WithArgs(domain.Whitelist).WillReturnRows(rows)
+	mock.ExpectQuery(regexp.QuoteMeta("SELECT cidr\n\tFROM subnets\n\tWHERE list_type = $1")).
+		WithArgs(domain.Whitelist).WillReturnRows(rows)
 
 	got, err := s.GetSubnetLists(context.Background(), domain.Whitelist)
 	if err != nil {
@@ -88,7 +88,8 @@ func TestClearSubnetList_Exec(t *testing.T) {
 	s, mock, cleanup := setup(t)
 	defer cleanup()
 
-	mock.ExpectExec(regexp.QuoteMeta("DELETE FROM subnets\n    WHERE list_type = $1")).WithArgs(domain.Whitelist).WillReturnResult(sqlmock.NewResult(0, 1))
+	mock.ExpectExec(regexp.QuoteMeta("DELETE FROM subnets\n    WHERE list_type = $1")).
+		WithArgs(domain.Whitelist).WillReturnResult(sqlmock.NewResult(0, 1))
 
 	if err := s.ClearSubnetList(context.Background(), domain.Whitelist); err != nil {
 		t.Fatalf("ClearSubnetList error: %v", err)

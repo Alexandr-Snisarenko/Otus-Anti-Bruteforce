@@ -2,6 +2,7 @@ package version
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -47,7 +48,8 @@ func main() {
 	cmd.Env = os.Environ()
 	out, err := cmd.Output()
 	if err != nil {
-		if ee, ok := err.(*exec.ExitError); ok {
+		var ee *exec.ExitError
+		if errors.As(err, &ee) {
 			t.Fatalf("command failed: %v, stderr=%s", err, string(ee.Stderr))
 		}
 		t.Fatalf("command failed: %v", err)
@@ -55,9 +57,9 @@ func main() {
 
 	// Parse JSON output
 	var got struct {
-		Release   string `json:"Release"`
-		BuildDate string `json:"BuildDate"`
-		GitHash   string `json:"GitHash"`
+		Release   string `json:"release"`
+		BuildDate string `json:"buildDate"`
+		GitHash   string `json:"gitHash"`
 	}
 	if err := json.Unmarshal(out, &got); err != nil {
 		t.Fatalf("json unmarshal: %v, out=%s", err, string(out))

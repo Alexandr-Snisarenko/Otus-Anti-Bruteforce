@@ -6,17 +6,16 @@ participant "ApplicationService" as APP
 participant "CidrMatcher" as CIDR
 participant "RateLimiter" as RL
 participant "BucketStore (Redis)" as BS
-participant "ListStore (Postgres)" as LS
+
 
 Client -> TR: CheckAttempt(login, password, ip)
 TR -> APP: CheckAttempt(...)
 APP -> CIDR: Check(ip)
-CIDR -> LS: (on cache miss) load lists
 CIDR --> APP: result (WHITE/BLACK/NONE)
 alt IP in WHITELIST
   APP --> TR: ok=true (skip limiter)
 else IP in BLACKLIST
-  APP --> TR: ok=false
+  APP --> TR: ok=false (skip limiter)
 else normal flow
   APP -> RL: Allow(login, password, ip)
   RL -> BS: AddAndCount(keys=[login, password, ip])

@@ -14,18 +14,47 @@ interface SubnetRepo {
 	+RemoveCIDRFromSubnetList(ctx, listType string, cidr string) error
 }
 
+interface SubnetUpdatesPublisher {
+  +PublishSubnetUpdated(ctx) error
+}
+
+enum PolicyDecision {
+  ALLOW
+  DENY
+  CONTINUE
+}
+
 class Rule{
   -limit: int
   -window: time.Duration
 }
 
-class Limiter{
+interface LimitChecker {
+  +Allow(ctx, key string) : bool, error
+  +Reset(ctx, key string) : error
+}
+
+class Limiter implements LimitChecker {
   -storage: LimiterRepo
   -limitType: string
   -rule: Rule
   +Allow(ctx, key string) : bool, error
   +Reset(ctx, key string) : error
 }
+
+interface SubnetPolicerer {
+  +ReloadSubnets(ctx) : error
+  +Check(ip string) : PolicyDecision
+}
+
+class SubnetPolicer implements SubnetPolicerer {
+  -repo      ports.SubnetRepo  
+	+Whitelist *SubnetList
+	+Blacklist *SubnetList
+  +ReloadSubnets(ctx) : error
+  +Check(ip string) : PolicyDecision
+}
+
 
 class SubnetList{
   -nets map[string]*net.IPNet
@@ -36,25 +65,37 @@ class SubnetList{
   +Clear() : error
 }
 
-class ApplicationService{
-  -limiter: Limiter
-  -subnetWList: SubnetList
-  -subnetBList: SubnetList
-  -listStore: SubnetRepo
-  -logger: Logger
-  +CheckAttempt(ctx, login, password, ip string) : bool, error
-  +ResetBucket(ctx, key string) : error
-  +ManageSubnetList(ctx, action, listType, cidr string) : error
-}
-
-class SlidingWindowLimiter implements LimiterRepo {
-  -redisClient: *redis.Client
-  +Allow(ctx, key string, limit int, window time.Duration) : bool, error
+class RateLimiterService{
+  -limitChecker: LimitChecker
+  -subnetPolicer: SubnetPolicer
+  +IsAllowed(ctx, login, password, ip string) : bool, error
   +Reset(ctx, key string) : error
 }
 
-class CidrMatcher implements SubnetRepo {
-  -db: *sql.DB
+class SubnetListService{
+  -subnetRepo: SubnetRepo
+  -subnetUpdatePublisher: SubnetUpdatePublisher
+}
+
+
+class CgrpcServer{
+  -rateLimiterService: RateLimiterService
+  -subnetListService: SubnetListService
+}
+
+
+class Logger
+
+class BucketsDB implements LimiterRepo {
+  -mu: sync.RWMutex
+  -data: map[string]*timeline
+  +Allow(ctx, key string, limit int, window time.Duration) : bool, error
+  +Reset(ctx, key string): error
+}
+
+class SubnetDB implements SubnetRepo {
+  -mu: sync.RWMutex
+  -subnetLists: map[string][]string
   +GetSubnetLists(ctx, listType string) ([]string, error)
   +SaveSubnetList(ctx, listType string, cidrs []string) error
   +ClearSubnetList(ctx, listType string) error
@@ -62,10 +103,27 @@ class CidrMatcher implements SubnetRepo {
   +RemoveCIDRFromSubnetList(ctx, listType string, cidr string) error
 } 
 
-class Logger
+class PubSubSubnetUpdatesPublisher implements SubnetUpdatesPublisher {
+  +PublishSubnetUpdated(ctx) error
+}
 
-ApplicationService --> SlidingWindowLimiter
-ApplicationService --> CidrMatcher
-ApplicationService --> Logger
+SubnetRepo <|.. SubnetDB
+SubnetUpdatesPublisher <|.. PubSubSubnetUpdatesPublisher
+LimiterRepo <|.. BucketsDB
+LimitChecker <|.. Limiter
+SubnetPolicerer <|.. SubnetPolicer
+SubnetRepo <|.. SubnetListService
+SubnetUpdatesPublisher <|.. SubnetListService
+RateLimiterService --> LimitChecker
+RateLimiterService --> SubnetPolicerer
+CgrpcServer --> RateLimiterService
+CgrpcServer --> SubnetListService
+Limiter --> LimiterRepo
+SubnetPolicer --> SubnetRepo
+SubnetPolicer --> SubnetList
+SubnetListService --> SubnetRepo
+SubnetListService --> SubnetUpdatesPublisher
+Logger ..> CgrpcServer : uses
+
 
 @enduml

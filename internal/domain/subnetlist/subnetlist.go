@@ -4,15 +4,39 @@ import (
 	"context"
 	"errors"
 	"net"
+
+	"github.com/Alexandr-Snisarenko/Otus-Anti-Bruteforce/internal/domain"
+	"github.com/Alexandr-Snisarenko/Otus-Anti-Bruteforce/internal/ports"
 )
+
+// SubnetList - реализация ведения списка подсетей в CIDR нотации.
+// Для каждого типа списка (listType) отдельный экземпляр SubnetList.
+// Пример типов списков: whitelist, blacklist.
+// Пример использования:
+//		whitelist := subnetlist.NewSubnetList(ports.Whitelist)
+//		blacklist := subnetlist.NewSubnetList(ports.Blacklist)
+//
+// Сети хранятся в памяти в виде map[string]*net.IPNet для быстрого поиска.
+// Ключ - CIDR нотация сети в виде строки (например, "192.168.1.0/24").
+// Значение - указатель на net.IPNet, представляющий эту же сеть.
+// Проверка принадлежности IP к подсетям осуществляется прямым перебором всех подсетей.
+// Предполагается, что количество подсетей в списке невелико (до нескольких сотен), поэтому
+// производительность такого подхода будет приемлемой.
+// Может использоваться совместно с SubnetRepo для загрузки/сохранения списков подсетей.
+// Для этого есть метод Load(ctx, repo).
+// Или может использоваться автономно, без постоянного хранения.
 
 // SubnetList представляет список подсетей в CIDR нотации.
 type SubnetList struct {
-	nets map[string]*net.IPNet
+	listType domain.ListType
+	nets     map[string]*net.IPNet
 }
 
-func NewMatcher() *SubnetList {
-	return &SubnetList{nets: make(map[string]*net.IPNet)}
+func NewSubnetList(listType domain.ListType) *SubnetList {
+	return &SubnetList{
+		listType: listType,
+		nets:     make(map[string]*net.IPNet),
+	}
 }
 
 func (nl *SubnetList) Add(cidr string) error {
@@ -30,18 +54,13 @@ func (nl *SubnetList) Add(cidr string) error {
 	return nil
 }
 
-func (nl *SubnetList) Contains(ipStr string) (bool, error) {
-	ip := net.ParseIP(ipStr)
-	if ip == nil {
-		return false, ErrInvalidIP
-	}
-
+func (nl *SubnetList) Contains(ip net.IP) bool {
 	for _, net := range nl.nets {
 		if net.Contains(ip) {
-			return true, nil
+			return true
 		}
 	}
-	return false, nil
+	return false
 }
 
 func (nl *SubnetList) Remove(cidr string) {
@@ -52,18 +71,18 @@ func (nl *SubnetList) Clear() {
 	nl.nets = make(map[string]*net.IPNet)
 }
 
-func (nl *SubnetList) Load(ctx context.Context, repo SubnetRepo, listType ListType) ([]string, error) {
-	cidrs, err := repo.GetSubnetLists(ctx, listType)
+func (nl *SubnetList) Load(ctx context.Context, repo ports.SubnetRepo) error {
+	cidrs, err := repo.GetSubnetLists(ctx, nl.listType)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	nl.Clear()
 	for _, cidr := range cidrs {
 		if err := nl.Add(cidr); err != nil {
-			return nil, err
+			return err
 		}
 	}
 
-	return cidrs, nil
+	return nil
 }

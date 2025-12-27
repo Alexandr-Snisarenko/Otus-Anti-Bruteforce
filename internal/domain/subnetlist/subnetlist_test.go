@@ -1,8 +1,13 @@
 package subnetlist
 
 import (
+	"context"
 	"errors"
+	"net"
 	"testing"
+
+	"github.com/Alexandr-Snisarenko/Otus-Anti-Bruteforce/internal/domain"
+	"github.com/Alexandr-Snisarenko/Otus-Anti-Bruteforce/internal/storage/memory"
 )
 
 func TestIsIPInList_Table(t *testing.T) {
@@ -35,34 +40,18 @@ func TestIsIPInList_Table(t *testing.T) {
 			want:  false,
 			err:   nil,
 		},
-		{
-			name:  "invalid ip",
-			CIDRs: []string{"127.0.0.0/8"},
-			ip:    "not-an-ip",
-			want:  false,
-			err:   ErrInvalidIP,
-		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			list := NewMatcher()
+			list := NewSubnetList(domain.Whitelist)
 			for _, cidr := range tc.CIDRs {
 				err := list.Add(cidr)
 				if err != nil && !errors.Is(err, tc.err) {
 					t.Fatalf("unexpected error adding cidr %s: %v", cidr, err)
 				}
 			}
-			got, err := list.Contains(tc.ip)
-			if tc.err != nil {
-				if !errors.Is(err, tc.err) {
-					t.Fatalf("expected err %v, got %v", tc.err, err)
-				}
-				return
-			}
-			if err != nil {
-				t.Fatalf("unexpected error: %v", err)
-			}
+			got := list.Contains(net.ParseIP(tc.ip))
 			if got != tc.want {
 				t.Fatalf("want %v, got %v", tc.want, got)
 			}
@@ -91,7 +80,7 @@ func TestAdd_InvalidCIDR(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			list := NewMatcher()
+			list := NewSubnetList(domain.Whitelist)
 			err := list.Add(tc.CIDR)
 			if err == nil {
 				t.Fatalf("expected error for invalid CIDR, got nil")
@@ -100,5 +89,51 @@ func TestAdd_InvalidCIDR(t *testing.T) {
 				t.Fatalf("expected ErrInvalidCIDR, got %v", err)
 			}
 		})
+	}
+}
+
+// Тесты загрузки списка подсетей из SubnetRepo с использованием memory.SubnetListDB.
+func TestLoadFromSubnetRepo_Success(t *testing.T) {
+	repo := memory.NewSubnetListDB()
+
+	// подготовим данные в хранилище
+	if err := repo.SaveSubnetList(context.Background(), domain.Whitelist,
+		[]string{"192.168.10.0/24", "10.0.0.0/8"}); err != nil {
+		t.Fatalf("SaveSubnetList error: %v", err)
+	}
+
+	list := NewSubnetList(domain.Whitelist)
+	if err := list.Load(context.Background(), repo); err != nil {
+		t.Fatalf("Load error: %v", err)
+	}
+
+	// проверим, что IP входит
+	ok := list.Contains(net.ParseIP("192.168.10.5"))
+	if !ok {
+		t.Fatalf("expected IP to be contained after load")
+	}
+
+	// и что другой IP не входит
+	ok = list.Contains(net.ParseIP("172.16.0.1"))
+	if ok {
+		t.Fatalf("expected IP not to be contained after load")
+	}
+}
+
+func TestLoadFromSubnetRepo_InvalidCIDR(t *testing.T) {
+	repo := memory.NewSubnetListDB()
+
+	// сохраним невалидный CIDR
+	if err := repo.SaveSubnetList(context.Background(), domain.Whitelist, []string{"not-a-cidr"}); err != nil {
+		t.Fatalf("SaveSubnetList error: %v", err)
+	}
+
+	list := NewSubnetList(domain.Whitelist)
+	err := list.Load(context.Background(), repo)
+	if err == nil {
+		t.Fatalf("expected error when loading invalid CIDR, got nil")
+	}
+	if !errors.Is(err, ErrInvalidCIDR) {
+		t.Fatalf("expected ErrInvalidCIDR, got %v", err)
 	}
 }

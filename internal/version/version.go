@@ -7,9 +7,9 @@ import (
 )
 
 var (
-	release   = "UNKNOWN"
-	buildDate = "UNKNOWN"
-	gitHash   = "UNKNOWN"
+	Release   = "UNKNOWN"
+	BuildDate = "UNKNOWN"
+	GitHash   = "UNKNOWN"
 )
 
 func PrintVersion() {
@@ -18,9 +18,9 @@ func PrintVersion() {
 		BuildDate string
 		GitHash   string
 	}{
-		Release:   release,
-		BuildDate: buildDate,
-		GitHash:   gitHash,
+		Release:   Release,
+		BuildDate: BuildDate,
+		GitHash:   GitHash,
 	}); err != nil {
 		fmt.Printf("error while decode version info: %v\n", err)
 	}

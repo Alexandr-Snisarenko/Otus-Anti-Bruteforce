@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Alexandr-Snisarenko/Otus-Anti-bruteforce/internal/storage/memory"
+	"github.com/Alexandr-Snisarenko/Otus-Anti-Bruteforce/internal/storage/memory"
 )
 
 func TestLimiter_BasicFlow(t *testing.T) {
@@ -70,7 +70,7 @@ func TestLimiter_BasicFlow(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			db := memory.NewInMemoryDB()
+			db := memory.NewBucketsDB()
 			key := "test-key"
 			l := NewLimiter(db, "test-bucket", tt.rule)
 			ctx := context.Background()
@@ -101,7 +101,7 @@ func TestLimiter_BasicFlow(t *testing.T) {
 }
 
 func TestLimiter_SlidingWindow(t *testing.T) {
-	db := memory.NewInMemoryDB()
+	db := memory.NewBucketsDB()
 	rule := Rule{
 		Limit:  2,
 		Window: 100 * time.Millisecond,
@@ -139,7 +139,7 @@ func TestLimiter_SlidingWindow(t *testing.T) {
 }
 
 func TestLimiter_Reset(t *testing.T) {
-	db := memory.NewInMemoryDB()
+	db := memory.NewBucketsDB()
 	rule := Rule{
 		Limit:  2,
 		Window: time.Minute,
@@ -173,7 +173,7 @@ func TestLimiter_Reset(t *testing.T) {
 }
 
 func TestLimiter_MultipleKeysIsolation(t *testing.T) {
-	db := memory.NewInMemoryDB()
+	db := memory.NewBucketsDB()
 	rule := Rule{
 		Limit:  2,
 		Window: time.Second,

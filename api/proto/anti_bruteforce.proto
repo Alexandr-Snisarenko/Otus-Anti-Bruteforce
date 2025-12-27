@@ -1,7 +1,0 @@
-syntax = "proto3";
-
-package abapi;
-
-message check_auth {
-    // TODO
-}

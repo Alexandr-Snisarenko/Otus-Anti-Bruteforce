@@ -7,13 +7,22 @@ import (
 	"os"
 	"strings"
 
-	internalcfg "github.com/Alexandr-Snisarenko/Otus-Anti-bruteforce/internal/config"
-	"github.com/Alexandr-Snisarenko/Otus-Anti-bruteforce/internal/ctxmeta"
+	internalcfg "github.com/Alexandr-Snisarenko/Otus-Anti-Bruteforce/internal/config"
+	"github.com/Alexandr-Snisarenko/Otus-Anti-Bruteforce/internal/ctxmeta"
 )
 
+// Logger - обёртка над slog.Logger с контекстными методами логирования.
+// Формат сообщений: (msg, key1, value1, key2, value2 ...)
 type Logger struct {
 	*slog.Logger
 }
+
+// Fatal не делаем в данной реализации
+// // Non-context wrappers for fatal level logging.
+// func (l *Logger) Fatal(msg string, v ...any) {
+// 	l.Error(msg, v...)
+// 	os.Exit(1)
+// }
 
 // Обогащаем логгер полями из контекста.
 func (l *Logger) withCtx(ctx context.Context) *slog.Logger {
